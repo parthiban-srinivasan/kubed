@@ -46,6 +46,10 @@ func main() {
 
 	//  Warmup of instance (code load during instance creation) is handled by here
 	http.HandleFunc("/warmup", warmupHandler)
+
+	log.Print("Listening on port 8080")
+  log.Fatal(http.ListenAndServe(":8080", nil))
+
 }
 
 // end of Init function
