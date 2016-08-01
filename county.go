@@ -20,7 +20,7 @@ type county struct {
 }
 
 // Init module...
-func init() {
+func main() {
 
 	//      databaseConfig := os.Getenv("MYSQL_CONNECTION")
 
