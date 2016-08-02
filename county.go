@@ -1,4 +1,4 @@
-package county
+package main
 
 import (
 	"database/sql"
@@ -6,9 +6,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	_ "os"
 	"strings"
 	_ "time"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var db *sql.DB
@@ -19,21 +21,27 @@ type county struct {
 	state string
 }
 
+func init() {
+
+		db, err = sql.Open("mysql", "root:password@tcp(localhost:3306)/testdb")
+
+		if err != nil {
+			log.Printf("Database not found, not good you know")
+			log.Fatal("database not found")
+		}
+
+
+}
 // Init module...
 func main() {
 
 	//      databaseConfig := os.Getenv("MYSQL_CONNECTION")
+	//     	db, err = sql.Open("mysql", "root:root@tcp(104.196.22.179:3306)/testdb")
 
 	//      db, err = sql.Open("mysql", databaseConfig)
-	//      db, err = sql.Open("mysql", "root:root@tcp(104.196.22.179:3306)/testdb")
 
 	//  Open validates the database arguments without creating connections
-	db, err = sql.Open("mysql", "root@cloudsql(mygo-1217:us-central1:locdb)/testdb")
-
-	if err != nil {
-		log.Printf("Database not found, not good you know")
-		log.Fatal("database not found")
-	}
+	//db, err = sql.Open("mysql", "root@cloudsql(mygo-1217:us-central1:locdb)/testdb")
 
 	//  Root request is handled here
 	http.HandleFunc("/", rootHandler)
@@ -41,14 +49,19 @@ func main() {
 	//  Health check is handled by "healthz" handler
 	http.HandleFunc("/healthz", healthyHandler)
 
+//  Metrics using prometheus client library
+	http.Handle("/metrics", prometheus.Handler())
+
 	//  Create table via createhandler
 	http.HandleFunc("/create", createHandler)
 
 	//  Warmup of instance (code load during instance creation) is handled by here
 	http.HandleFunc("/warmup", warmupHandler)
 
-	log.Print("Listening on port 8080")
-  log.Fatal(http.ListenAndServe(":8080", nil))
+	//log.Print("Listening on port 8080")
+  //log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Print("Listening on port 6060")
+	log.Fatal(http.ListenAndServe(":6060", nil))
 
 }
 
@@ -64,7 +77,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path != "/county" {
-		fmt.Fprint(w, "only / PATH allow \n")
+		fmt.Fprint(w, "not valid root PATH  \n")
 		http.NotFound(w, r)
 		return
 	}
